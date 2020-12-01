@@ -27,13 +27,21 @@ public class VertexADJ<T extends Comparable<T>> extends Vertex<T> {
 		return weights;
 	}
 	
-	public void addEdge(T edge) {
+	public void addEdge(T edge) {	
 		edges.add(edge);
 	}
 	
-	public void eddEdgeWithWeight(T edge,Integer weight) {
-		edges.add(edge);
+	public void addWeight(T edge,Integer weight) {
 		weights.put(edge, weight);
+	}
+	
+	public void deleteEdge(T edge) {
+		edges.remove(edge);
+		weights.remove(edge);
+	}
+	
+	public Integer getWeight(T vertex) {
+		return weights.get(vertex);
 	}
 
 }
