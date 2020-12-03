@@ -1,6 +1,6 @@
 package model;
 
-public class EdgesPair<T extends Comparable<T>> implements Comparable<Integer> {
+public class EdgesPair<T extends Comparable<T>> implements Comparable<EdgesPair> {
 	private T element;
 	private T elementTwo;
 	private Integer weight;
@@ -28,8 +28,8 @@ public class EdgesPair<T extends Comparable<T>> implements Comparable<Integer> {
 	}
 
 	@Override
-	public int compareTo(Integer o) {
-		return o-weight;
+	public int compareTo(EdgesPair o) {
+		return (weight-o.weight);
 	}
 	public T getElementTwo(){
 		return elementTwo;

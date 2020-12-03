@@ -31,18 +31,26 @@ public class MatrixGraph<T extends Comparable<T>> implements IGraph<T>{
 
 	@Override
 	public void addEdge(T vertex, T edge) {
-		if(verticesNumbers.contains(vertex) && verticesNumbers.contains(edge)) {
-			int vertexNumber = verticesNumbers.indexOf(vertex);
-			int edgeNumber = verticesNumbers.indexOf(edge);
-			
-			weights[vertexNumber][edgeNumber] = 1;
-			
-			if(bidirectional) {
-				weights[edgeNumber][vertexNumber] = 1;
-			}	
-		}
 		
-		// TODO Auto-generated method stub
+		if(!verticesNumbers.contains(vertex) || !verticesNumbers.contains(edge)) {
+			if(!verticesNumbers.contains(vertex) && !verticesNumbers.contains(edge) ) {
+				addVertex(vertex);
+				addVertex(edge);
+			}else if(!verticesNumbers.contains(vertex) ) {
+				addVertex(vertex);
+			}else {
+				addVertex(edge);
+			}
+		}
+		int vertexNumber = verticesNumbers.indexOf(vertex);
+		int edgeNumber = verticesNumbers.indexOf(edge);
+
+		weights[vertexNumber][edgeNumber] = 1;
+
+		if(bidirectional) {
+			weights[edgeNumber][vertexNumber] = 1;
+		}
+
 		
 	}
 
@@ -144,6 +152,7 @@ public class MatrixGraph<T extends Comparable<T>> implements IGraph<T>{
 				int index = verticesNumbers.indexOf(current);
 				Integer[] edges = weights[index];
 				
+				
 				for(int i=0;i<edges.length;i++) {
 					if(edges[i]!=null) {
 						T aux = verticesNumbers.get(i);
@@ -213,14 +222,68 @@ public class MatrixGraph<T extends Comparable<T>> implements IGraph<T>{
 
 	@Override
 	public int[][] floydWarshall() {
-		// TODO Auto-generated method stub
-		return null;
+		int length = weights.length;
+		int[][] result = new int[length][length];
+		for (int i = 0; i < result.length; i++) {
+			for (int j = 0; j < result[i].length; j++) {
+				int value = weights[i][j];
+				if(i==j) {
+					result[i][j] = 0;
+				}else {
+					result[i][j] = value!=0?value:Integer.MAX_VALUE;
+				}
+			}
+		}
+		for (int k = 0; k <length; k++) {
+			for (int i = 0; i < length; i++) {
+				for (int j = 0; j < length; j++) {
+					if(result[i][j]> result[i][k]+ result[k][j] && (result[i][k]!=Integer.MAX_VALUE && result[k][j]!=Integer.MAX_VALUE)) {
+						result[i][j] = result[i][k] + result[k][j];
+					}
+				}
+			}
+		}
+		return result;
 	}
 
 	@Override
 	public IGraph<T> prim() {
-		// TODO Auto-generated method stub
-		return null;
+		int nVertices = verticesNumbers.size();
+		int i, j, k, x, y;
+		boolean[] visited = new boolean[nVertices];
+		int[] predNode = new int[nVertices];
+		visited[0] = true;
+		int infinite = Integer.MAX_VALUE;
+		int[][] costs = new int[nVertices][nVertices];
+		for ( i=0; i < nVertices; i++){
+			for ( j=0; j < nVertices; j++){
+				costs[i][j] = weights[i][j];
+        	 if ( costs[i][j] == 0 )
+        		 costs[i][j] = infinite;
+			}
+		}
+		predNode[0] = 0;
+		for (k = 1; k < nVertices; k++){
+			x = y = 0;
+			for ( i = 0; i < nVertices; i++ ) {
+				for ( j = 0; j < nVertices; j++ ){
+					if ( visited[i] && !visited[j] && costs[i][j] < costs[x][y] ){
+						x = i;
+						y = j;
+					}
+				}
+			}
+			predNode[y] = x;
+			visited[y] = true;
+		}
+		int[] a= predNode;
+		MatrixGraph<T> result = new MatrixGraph<>(nVertices, bidirectional);
+		for ( i = 0; i < nVertices; i++ ) {
+			if(a[i]!=i) {
+				result.addEdge(verticesNumbers.get(a[i]), verticesNumbers.get(i));
+			}
+		}
+		return result;
 	}
 
 	@Override
@@ -261,6 +324,14 @@ public class MatrixGraph<T extends Comparable<T>> implements IGraph<T>{
 		}
 
 		return result;
+	}
+	
+	public List<T> getVerticesNumbers(){
+		return this.verticesNumbers;
+	}
+	
+	public Integer[][] getAdyascenceMatrix(){
+		return weights;
 	}
 
 }

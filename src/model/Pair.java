@@ -1,6 +1,6 @@
 package model;
 
-public class Pair<T extends Comparable<T>> implements Comparable<Integer>  {
+public class Pair<T extends Comparable<T>> implements Comparable<Pair>  {
 
 	private T element;
 	private Integer weight;
@@ -27,8 +27,7 @@ public class Pair<T extends Comparable<T>> implements Comparable<Integer>  {
 	}
 
 	@Override
-	public int compareTo(Integer o) {
-		return o-weight;
+	public int compareTo(Pair o) {
+		return (weight-o.weight);
 	}
-
 }

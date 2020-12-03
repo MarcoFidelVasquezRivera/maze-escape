@@ -1,6 +1,7 @@
 package model;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -8,6 +9,9 @@ import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Stack;
+import java.util.stream.Collectors;
+
+import customExceptions.VertexDoesntExistException;
 
 
 public class ListGraph<T extends Comparable<T>> implements IGraph<T> {
@@ -70,11 +74,11 @@ public class ListGraph<T extends Comparable<T>> implements IGraph<T> {
 	}
 
 	@Override
-	public void deleteVertex(T vertex) {
+	public void deleteVertex(T vertex) throws VertexDoesntExistException {
 		VertexADJ<T> currentVertex = vertices.get(vertex);
 		
 		if(currentVertex==null) {
-			//lanzar excepcion
+			throw new VertexDoesntExistException();
 		}
 		
 		vertices.remove(vertex);
@@ -110,10 +114,14 @@ public class ListGraph<T extends Comparable<T>> implements IGraph<T> {
 				visited.put(current, true);
 
 				List<T> edges = vertices.get(current).getEdges();
+				Collections.sort(edges);
 				
 				for(T aux : edges) {
 					if(!visited.containsKey(aux)) {
 						stack.add(aux);
+						if(path.containsKey(aux)) {
+							path.remove(aux);
+						}
 						path.put(aux, current);
 					}
 				}
@@ -139,11 +147,13 @@ public class ListGraph<T extends Comparable<T>> implements IGraph<T> {
 				visited.put(current, true);
 
 				List<T> edges = vertices.get(current).getEdges();
+				Collections.sort(edges);
 				
 				for(T aux : edges) {
-					if(!visited.containsKey(aux)) {
+					if(!visited.containsKey(aux) && !queue.contains(aux)) {
 						queue.add(aux);
 						path.put(aux, current);
+						
 					}
 				}
 			}
@@ -157,9 +167,13 @@ public class ListGraph<T extends Comparable<T>> implements IGraph<T> {
 		Map<T,Integer> distances = new HashMap<T,Integer>();
 		Map<T,T> previous = new HashMap<T,T>();
 		Map<T,Pair<T>> pairs = new HashMap<T,Pair<T>>();
+		
+		previous.put(initialVertex, null);
 		distances.put(initialVertex, 0);
 		
 		PriorityQueue<Pair<T>> pQueue = new PriorityQueue<Pair<T>>();
+		Pair<T> fPair = new Pair<T>(initialVertex,0);
+		pQueue.offer(fPair);
 		
 		for(Map.Entry<T,VertexADJ<T>> mapElement : vertices.entrySet()) {
 			if(mapElement.getKey().compareTo(initialVertex)!=0) {
@@ -169,7 +183,7 @@ public class ListGraph<T extends Comparable<T>> implements IGraph<T> {
 				
 				Pair<T> pair = new Pair<T>(key,distances.get(key));
 				pairs.put(key, pair);
-				pQueue.add(pair);
+				pQueue.offer(pair);
 				
 			}
 		}
@@ -181,7 +195,8 @@ public class ListGraph<T extends Comparable<T>> implements IGraph<T> {
 			
 			for(int i=0;i<currentNeighbors.size();i++) {
 				T neighbor = currentNeighbors.get(i);
-				Integer aux = distances.get(currentVertex) + currentWeights.get(i);
+				
+				Integer aux = distances.get(currentVertex) + currentWeights.get(neighbor);
 				Integer currentDistance = distances.get(neighbor);
 				
 				if(aux < currentDistance) {
@@ -194,6 +209,7 @@ public class ListGraph<T extends Comparable<T>> implements IGraph<T> {
 					previous.put(neighbor,currentVertex);
 					
 					pQueue.remove(currentPair);
+					
 					currentPair.setWeight(aux);
 					pQueue.add(currentPair);
 				}
@@ -220,14 +236,14 @@ public class ListGraph<T extends Comparable<T>> implements IGraph<T> {
 			for(int j=0;j<pairs[0].length;j++) {
 				if(weight(i,j)!=null) {
 					pairs[i][j]=weight(i,j);	
-				}		
+				}
 			}
 		}
 		
 		for(int k=0;k<pairs.length;k++) {
 			for(int i=0;i<pairs.length;i++) {
 				for(int j=0;j<pairs.length;j++) {
-					if(pairs[i][j]>(pairs[i][k]+pairs[k][j])) {
+					if(pairs[i][k]!=Integer.MAX_VALUE &&  pairs[k][j]!=Integer.MAX_VALUE && pairs[i][j]>pairs[i][k]+pairs[k][j]) {
 						pairs[i][j]=pairs[i][k]+pairs[k][j];
 					}
 				}
@@ -237,12 +253,12 @@ public class ListGraph<T extends Comparable<T>> implements IGraph<T> {
 		return pairs;
 	}
 	
-	public Integer minKey(int[]key,boolean[]visited) {
+	public Integer minKey(Map<T,Integer> key,Map<T,Boolean> visited) {
 		int min=Integer.MAX_VALUE;
 		int minIndex = -1;
-		for(int i=0;i<vertices.size();i++) {
-			if(visited[i]==false && key[i]<min) {
-				min=key[i];
+		for(int i=0;i<verticesNumbers.size();i++) {	
+			if(visited.get(verticesNumbers.get(i))==false && key.get(verticesNumbers.get(i))<min) {
+				min=key.get(verticesNumbers.get(i));
 				minIndex=i;
 			}
 		}
@@ -250,38 +266,50 @@ public class ListGraph<T extends Comparable<T>> implements IGraph<T> {
 	}
 	@Override
 	public IGraph<T> prim() {
-		
-		int [] key = new int[vertices.size()];
+		Map<T,Integer> key = new HashMap<>();
 		Map<T,T> prev = new HashMap<>();
-		boolean visited[] = new boolean[vertices.size()];
+		Map<T,Boolean> visited = new HashMap<>();
 		
-		for(int i=0;i<vertices.size();i++) {
-			key[i]=Integer.MAX_VALUE;
+		for(int i=0;i<verticesNumbers.size();i++) {
+			if(i==0) {
+				key.put(verticesNumbers.get(i), 0);
+				visited.put(verticesNumbers.get(i),false);
+			}else {
+				key.put(verticesNumbers.get(i), Integer.MAX_VALUE);
+				visited.put(verticesNumbers.get(i),false);
+			}
 		}
-		key[0]=0;
 		prev.put(verticesNumbers.get(0), null);
-		for(int flag =0;flag<vertices.size()-1;flag++) {
-			int u= minKey(key,visited);
-			visited[u]=true;
+		for(int flag = 0;flag<(vertices.size()-1);flag++) {
+			int u = minKey(key,visited);
+			visited.put(verticesNumbers.get(u), true);
 			
-			ArrayList <T> adj =vertices.get(verticesNumbers.get(u)).getEdges();
-			for(int i=0;i<adj.size();i++) {
-				if(weight(u,i)!=null && visited[i]==false && weight(u,i)<key[i]) {
-					prev.put(verticesNumbers.get(i), verticesNumbers.get(u));
-					key[i]=weight(u,i);
+			ArrayList <T> adj = vertices.get(verticesNumbers.get(u)).getEdges();
+			
+			for(int i=0;i<verticesNumbers.size();i++) {
+				
+				if(weight(u,i)!=null && visited.get(verticesNumbers.get(i))==false && weight(u,i)<key.get(verticesNumbers.get(i))) {
+					prev.put(verticesNumbers.get(i), verticesNumbers.get(u));/////////////
+					key.put(verticesNumbers.get(i), weight(u,i));
 				}
 			}
+			
 		}
 		
 		ListGraph<T> result = new ListGraph<T>(true);
 		
 		for(Map.Entry<T,VertexADJ<T>> mapElement : vertices.entrySet()) {
-			result.addVertex(mapElement.getKey());
+			System.out.println(mapElement.getValue().getVertexName());
+			result.addVertex(mapElement.getValue().getVertexName());
 		}
+
 		for(Map.Entry<T,VertexADJ<T>> mapElement : vertices.entrySet()) {
-				result.addEdge(prev.get(mapElement.getKey()), mapElement.getKey());
+			if(!(prev.get(mapElement.getKey())==null)) {
+				result.addEdge(prev.get(mapElement.getKey()), mapElement.getKey(),key.get(mapElement.getKey()));
+			}
 		}
 		return result;
+		
 	}
 	
 	
@@ -297,10 +325,11 @@ public class ListGraph<T extends Comparable<T>> implements IGraph<T> {
 		
 		for(Map.Entry<T,VertexADJ<T>> mapElement : vertices.entrySet()) {
 			Map<T,Integer> weights = mapElement.getValue().getWeights();
+			result.addVertex(mapElement.getKey());
 			
 			for(Map.Entry<T,Integer> edge : weights.entrySet()) {
 				EdgesPair<T> pair = new EdgesPair<T>(mapElement.getKey(),edge.getKey(), edge.getValue());
-				pQueue.add(pair);
+				pQueue.offer(pair);
 			}
 		}
 		
@@ -310,10 +339,8 @@ public class ListGraph<T extends Comparable<T>> implements IGraph<T> {
 			T u = pair.getElement();
 			T v = pair.getElementTwo();
 			
-			if(sets.findSet(u)!=sets.findSet(v)) {
+			if(sets.findSet(u).compareTo(sets.findSet(v))!=0) {
 				sets.union(u, v);
-				result.addVertex(u);
-				result.addVertex(v);
 				result.addEdge(u, v, pair.getWeight());
 			}
 		}
@@ -327,5 +354,9 @@ public class ListGraph<T extends Comparable<T>> implements IGraph<T> {
 	
 	public List<T> getVerticesNumbers(){
 		return this.verticesNumbers;
+	}
+	
+	public Map<T,VertexADJ<T>> getAdyascenceList(){
+		return vertices;
 	}
 }
