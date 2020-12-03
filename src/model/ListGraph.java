@@ -46,15 +46,16 @@ public class ListGraph<T extends Comparable<T>> implements IGraph<T> {
 		
 		if(currentVertex==null || edgeVertex==null) {
 			//tirar la excepcion
-		}
-		
-		if(bidirectional) {
-			currentVertex.addEdge(edge);
-			edgeVertex.addEdge(vertex);	
 		}else {
-			currentVertex.addEdge(edge);
+			if(!currentVertex.getEdges().contains(edge)) {
+				if(bidirectional) {
+					currentVertex.addEdge(edge);
+					edgeVertex.addEdge(vertex);	
+				}else {
+					currentVertex.addEdge(edge);
+				}
+			}
 		}
-
 	}
 
 	@Override
@@ -64,13 +65,14 @@ public class ListGraph<T extends Comparable<T>> implements IGraph<T> {
 		VertexADJ<T> currentVertex = vertices.get(vertex);
 		VertexADJ<T> edgeVertex = vertices.get(edge);
 		
-		if(bidirectional) {
-			currentVertex.addWeight(edge, weight);
-			edgeVertex.addWeight(vertex, weight);
-		}else {
-			currentVertex.addWeight(edge, weight);
+		if(currentVertex.getEdges().contains(edge)) {
+			if(bidirectional) {
+				currentVertex.addWeight(edge, weight);
+				edgeVertex.addWeight(vertex, weight);
+			}else {
+				currentVertex.addWeight(edge, weight);
+			}
 		}
-		
 	}
 
 	@Override
@@ -284,7 +286,7 @@ public class ListGraph<T extends Comparable<T>> implements IGraph<T> {
 			int u = minKey(key,visited);
 			visited.put(verticesNumbers.get(u), true);
 			
-			ArrayList <T> adj = vertices.get(verticesNumbers.get(u)).getEdges();
+			
 			
 			for(int i=0;i<verticesNumbers.size();i++) {
 				
