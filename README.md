@@ -14,3 +14,5 @@ Also you can find the safest way out of the maze using either djikstra or kruska
 ![Safest path](https://media.discordapp.net/attachments/582665686938157066/784152355267936307/unknown.png?width=478&height=474)
 
 
+For more information about this program click the following link.
+https://github.com/MarcoFidelVasquezRivera/maze-escape/tree/master/docs
