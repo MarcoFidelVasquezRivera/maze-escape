@@ -20,3 +20,6 @@ Also you can find the safest way out of the maze using either djikstra or kruska
 
 For more information about this program click the following link.
 https://github.com/MarcoFidelVasquezRivera/maze-escape/tree/master/docs
+
+Check our informative video about the program too!
+https://drive.google.com/file/d/1_hQFpa2irRX7JcGmomVLeAmiKIXy803n/view?usp=sharing
